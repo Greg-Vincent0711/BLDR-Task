@@ -5,7 +5,7 @@
 
 const express = require('express')
 const app = express()
-const {hasAnyEmptyProperty, convertPriceRangeToNumeric, updateInvetory} = require('./helpers')
+const {hasAnyEmptyProperty, convertPriceRangeToNumeric, updateInvetory} = require('./utility')
 const bookInventory = require('./books')
 // Middleware to parse JSON in request body
 app.use(express.json());
@@ -45,6 +45,8 @@ app.post('/books', (req, res) => {
 /**
  * @route PUT /items
  * Mark as unavailable and set a rent duration.
+ * rentDuration is in the format MM/DD/YY - MM/DD/YY
+ * for ex: 01/25/25 - 01/27/25
 */
 app.put('/books/:id/rent', (req, res) => {
     const { id } = req.params;

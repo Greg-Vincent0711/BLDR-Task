@@ -1,4 +1,4 @@
-*See testing instructions in Testing.md*
+**See testing instructions in Testing.md**
 
 I wanted to keep this API as simple as possible while also maintaining what was asked in the project requirements and a level of 
 organization. My thought process is as follows:

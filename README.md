@@ -19,9 +19,11 @@ organization. My thought process is as follows:
   All API endpoints reside in this file as per the project requirements. I kept the code as simplistic and readable as I could to the best
   of my ability, and commented where I thought necessary.
 
-  
 
+  
 **Some improvements I can think of for a production scale API**:
+
+
 - Assuming a sorted array of data and a _much_ larger dataset, using Binary Search when performing GET requests for a specific book would be 
   ideal since it's faster than JS' built-in linear search(O(n) vs O(log(n))).
 - For a more robust solution to the user, it would be beneficial to make it so that user's can define a minimum or maximum price only when search for

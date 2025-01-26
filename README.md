@@ -3,16 +3,19 @@ organization. My thought process is as follows:
 
 
 **books.js**
+
   Simply a mutable list of books that can be edited by API calls in server.js.
 
   
 **utility.js** 
+
   Contains helper functions used for necessary data checking practices like checking parameter format(min, max, duration validity, etc).
   If this was connected to an actual DB, the main function to update our store of data wouldn't be in this file. I found it appropriate just because this
   API isn't dealing with data that is very complex. 
 
   
 **server.js**
+
   All API endpoints reside in this file as per the project requirements. I kept the code as simplistic and readable as I could to the best
   of my ability, and commented where I thought necessary.
 

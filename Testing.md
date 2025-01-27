@@ -1,4 +1,5 @@
 Install all the dependencies needed - namely express.
+Run: node server.js
 
 Add a New Book (POST /books)
 

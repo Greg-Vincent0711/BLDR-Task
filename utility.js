@@ -6,8 +6,9 @@ const fs = require('fs');
 const path = require('path');
 
 function hasAnyEmptyProperty(newBook) {
-    return Object.values(newBook).some(newBookProperty => {newBookProperty === null ||
-         newBookProperty === undefined || newBookProperty === ''});
+    return Object.values(newBook).some(newBookProperty => 
+        newBookProperty === null || newBookProperty === undefined || newBookProperty === ''
+    );
 }
 
 
@@ -23,6 +24,7 @@ function convertPriceRangeToNumeric(priceRange){
         const min = Number(range[0])
         const max = Number(range[1])
         if (max <= min || max <= 0 || min <= 0){
+            console.log("Invalid Range")
             return {
                 "Error" : "Invalid range."
             }
@@ -40,7 +42,7 @@ function convertPriceRangeToNumeric(priceRange){
  * "Updates" the backend by overwriting the JSON file with the latest data
  */
 
-function updateInvetory(updatedInventoryList){
+function updateInventory(updatedInventoryList){
     // Path to the file
     const filePath = path.join('books.js');
     // Write updated books back to the file
@@ -49,10 +51,29 @@ function updateInvetory(updatedInventoryList){
 
 
 
+// const parseDuration = (duration) => {
+//     const [start, end] = duration.split(/\s?-\s?/);
+//     return {
+//         // Convert given date to ISO format for JS Date constructor reliability
+//         startDate: new Date(`20${start.slice(6)}-${start.slice(0, 2)}-${start.slice(3, 5)}`),
+//         endDate: new Date(`20${end.slice(6)}-${end.slice(0, 2)}-${end.slice(3, 5)}`),
+//     };
+// };
+
 const parseDuration = (duration) => {
+    // Ensure duration is not undefined or invalid
+    console.log(duration, typeof duration)
+    if (typeof duration !== 'string') {
+        throw new Error("Invalid duration: must be a non-empty string in the format MM/DD/YY - MM/DD/YY.");
+    }
+
     const [start, end] = duration.split(/\s?-\s?/);
+    if (start == null || end == null) {
+        throw new Error("Invalid duration format: Start or End date is missing.");
+    }
+
     return {
-        // Convert given date to ISO format for JS Date constructor reliability
+        // Convert dates to ISO format for Date constructor reliability
         startDate: new Date(`20${start.slice(6)}-${start.slice(0, 2)}-${start.slice(3, 5)}`),
         endDate: new Date(`20${end.slice(6)}-${end.slice(0, 2)}-${end.slice(3, 5)}`),
     };
@@ -68,7 +89,7 @@ const hasDurationOverlap = (firstDuration, secondDuration) => {
     if (endDateOne < startDateTwo || endDateTwo < startDateOne) {
         return { overlap: false, message: "No overlap." };
     } 
-    return { overlap: true, message: "Durations overlap." };
+    return { overlap: true, durationOverlapErrorMessage: "Durations overlap." };
 };
 
 
@@ -84,22 +105,20 @@ const isValidDuration = (rentDuration) => {
 
     const { startDate, endDate } = parseDuration(rentDuration)
     if (isNaN(startDate) || isNaN(endDate)) {
-        return { durationIsValid: false, message: "Invalid date values." };
+        return { validDuration: false, message: "Invalid date values." };
     }
 
     if (startDate > endDate) {
-        return { durationIsValid: false, message: "Start date cannot be later than end date." };
+        return { validDuration: false, message: "Start date cannot be later than end date." };
     }
 
-    return { durationIsValid: true, message: "Valid duration." };
+    return { validDuration: true, message: "Valid duration." };
 };
-
-isValidDuration("01/25/22 - 01/24/29")
 
 module.exports = {
     hasAnyEmptyProperty, 
     convertPriceRangeToNumeric, 
-    updateInvetory, 
+    updateInventory, 
     isValidDuration,
     hasDurationOverlap
 }

@@ -5,7 +5,12 @@
 
 const express = require('express')
 const app = express()
-const {hasAnyEmptyProperty, convertPriceRangeToNumeric, updateInvetory} = require('./utility')
+const { hasAnyEmptyProperty, 
+        convertPriceRangeToNumeric, 
+        updateInventory,
+        isValidDuration,
+        hasDurationOverlap
+    } = require('./utility')
 const bookInventory = require('./books')
 // Middleware to parse JSON in request body
 app.use(express.json());
@@ -13,14 +18,13 @@ const PORT = 8000
 
 /**
  * @route POST /books
- * Create a new book to list for rent
+ * Book Listing
  * New Book data:
  * {
         Title: string,
         Description: string,
         Price: number,
     }
-    Works
  */
 
 app.post('/books', (req, res) => {
@@ -37,44 +41,65 @@ app.post('/books', (req, res) => {
         rentDuration: ""
     }
     bookInventory.push(newBook)
-    updateInvetory(bookInventory)
+    updateInventory(bookInventory)
     // overwrite the JSON file with updated list
     return res.status(201).json({message: 'New book added successfully'})
 })
 
 /**
  * @route PUT /items
- * Mark as unavailable and set a rent duration.
+ * Mark as unavailable and set a rent duration. Check rent duration format and for overlaps.
  * rentDuration is in the format MM/DD/YY - MM/DD/YY
  * for ex: 01/25/25 - 01/27/25
 */
 app.put('/books/:id/rent', (req, res) => {
     const { id } = req.params;
-    const { rentDuration } = req.body;
+    const { newRentDuration } = req.body;
     const rentedBook = bookInventory.find(book => book.id == id)
     if (!rentedBook) {
         return res.status(404).json({message: 'Book not found. Check id given.'})
     }
-    rentedBook.isAvailable = false
-    rentedBook.rentDuration = rentDuration
-    updateInvetory(bookInventory)
-    return res.status(200).json({message: `${rentedBook.Title} is now rented from ${rentedBook.rentDuration}.`})
+    const {validDuration, invalidDurationErrorMessage} = isValidDuration(newRentDuration)
+    if(validDuration){
+        if(rentedBook.rentDuration != ""){
+            const {overlap, durationOverlapErrorMessage } = hasDurationOverlap(newRentDuration, rentedBook.rentDuration)
+            if(!overlap){
+                rentedBook.rentDuration = `${rentedBook.rentDuration}, ${newRentDuration}`
+                updateInventory(bookInventory)
+                return res.status(200).json({message: `${rentedBook.Title} is now rented from ${rentedBook.rentDuration}.`})
+            } else{
+                return res.status(400).json({"Error renting your book: " : durationOverlapErrorMessage})
+            }
+        } else{
+            rentedBook.isAvailable = false
+            rentedBook.rentDuration = newRentDuration
+            updateInventory(bookInventory)
+            return res.status(200).json({message: `${rentedBook.Title} is now rented from ${rentedBook.rentDuration}.`})
+        }
+    } else {
+        return res.status(400).json({"Error" : invalidDurationErrorMessage})
+    }
 })
 
 
 /**
- * @route PUT /returnItems
+ * @route PUT /item return
  * Mark as available, set rent duration to null
 */
-app.put('/book/:id/return', (req, res) => {
+app.put('/books/:id/return', (req, res) => {
     const { id } = req.params;
     const returnedBook = bookInventory.find(item => item.id == id)
     if (!returnedBook) {
         return res.status(404).json({message: 'Item not found. Check id given.'})
     }
     returnedBook.isAvailable = true
-    returnedBook.rentDuration = ""
-    updateInvetory(bookInventory)
+    /**
+     * in the case a book has two separate non-overlapping rental times, remove the first
+     * since it has been returned.
+     */
+    const rentDurations = returnedBook.rentDuration.split(",")
+    returnedBook.rentDuration = rentDurations.length == 2 ? rentDurations[1] : ""
+    updateInventory(bookInventory)
     return res.status(200).json({message: `${returnedBook.Title} is now available for rent!`})
 })
 
@@ -95,6 +120,9 @@ app.get("/books", (req, res) => {
         }
     } else if(priceRange){
         const range = convertPriceRangeToNumeric(priceRange)
+        if (range.Error != null){
+            return res.status(400).json({"Message": range.Error})
+        }
         const requestedBooksByPrice = bookInventory.filter(book => range.Min <= book.Price && book.Price <= range.Max)
         if(!requestedBooksByPrice){
             return res.status(400).json({"Messsage" : `Could not find a book matching your criteria. Check your listed range and title for errors.`})

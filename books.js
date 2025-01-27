@@ -117,7 +117,7 @@ const books = [
     "Description": "Siddhartha Mukherjee's exploration of the history and science of genetics.",
     "isAvailable": true,
     "Price": 19,
-    "rentDuration": ""
+    "rentDuration": " 01/27/25 - 01/29/25"
   },
   {
     "id": 16,
@@ -221,6 +221,14 @@ const books = [
     "Description": "Star Wars.",
     "isAvailable": false,
     "Price": 50,
+    "rentDuration": ""
+  },
+  {
+    "id": 29,
+    "Title": "Contact",
+    "Description": "A sci-fi Novel by Carl Sagan",
+    "isAvailable": false,
+    "Price": 11.5,
     "rentDuration": ""
   }
 ];
